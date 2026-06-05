@@ -14,6 +14,7 @@ interface EventStore {
   addEvent: (event: EventInput) => RoutineEvent;
   updateEvent: (id: string, event: EventUpdate) => void;
   deleteEvent: (id: string) => void;
+  replaceEvents: (events: RoutineEvent[]) => void;
   moveEvent: (id: string, day: DayOfWeek, startMinutes: number) => boolean;
   resizeEvent: (id: string, startMinutes: number, endMinutes: number) => boolean;
   undo: () => void;
@@ -59,6 +60,9 @@ export const useEventStore = create<EventStore>()(
         },
         deleteEvent: (id) => {
           set((state) => ({ events: state.events.filter((event) => event.id !== id) }));
+        },
+        replaceEvents: (events) => {
+          set({ events });
         },
         moveEvent: (id, day, startMinutes) => {
           const currentEvent = get().events.find((event) => event.id === id);

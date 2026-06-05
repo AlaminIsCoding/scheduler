@@ -12,6 +12,7 @@ interface CategoryStore {
   addCategory: (category: CategoryInput) => Category;
   updateCategory: (id: string, category: CategoryUpdate) => void;
   deleteCategory: (id: string) => void;
+  replaceCategories: (categories: Category[]) => void;
 }
 
 export const useCategoryStore = create<CategoryStore>()(
@@ -37,6 +38,9 @@ export const useCategoryStore = create<CategoryStore>()(
       },
       deleteCategory: (id) => {
         set((state) => ({ categories: state.categories.filter((category) => category.id !== id) }));
+      },
+      replaceCategories: (categories) => {
+        set({ categories });
       },
     }),
     {

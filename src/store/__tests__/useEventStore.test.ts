@@ -150,6 +150,23 @@ describe('useEventStore', () => {
     expect(result).toBe(false);
   });
 
+  it('replaces all events', () => {
+    const replacement = [
+      { id: 'new-1', title: 'Replaced', day: 'tue' as const, startMinutes: 480, endMinutes: 540, categoryId: 'work', color: '#f97316' },
+    ];
+
+    useEventStore.getState().replaceEvents(replacement);
+
+    expect(useEventStore.getState().events).toEqual(replacement);
+  });
+
+  it('replaces events with empty array', () => {
+    useEventStore.getState().addEvent(eventInput);
+    useEventStore.getState().replaceEvents([]);
+
+    expect(useEventStore.getState().events).toEqual([]);
+  });
+
   it('rejects invalid event times', () => {
     expect(() =>
       useEventStore.getState().addEvent({

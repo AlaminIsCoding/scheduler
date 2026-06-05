@@ -6,6 +6,7 @@ import type { Settings } from '../types';
 interface SettingsStore {
   settings: Settings;
   updateSettings: (settings: Partial<Settings>) => void;
+  replaceSettings: (settings: Settings) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -20,6 +21,9 @@ export const useSettingsStore = create<SettingsStore>()(
           }
           return { settings: next };
         });
+      },
+      replaceSettings: (settings) => {
+        set({ settings });
       },
     }),
     {

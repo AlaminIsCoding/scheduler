@@ -1,6 +1,7 @@
 import { Sidebar } from './components/sidebar/Sidebar';
 import { TodayPage } from './pages/TodayPage';
 import { WeeklyPage } from './pages/WeeklyPage';
+import { Toaster } from './components/ui/sonner';
 import { useNavigationStore } from './store/useNavigationStore';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
@@ -16,6 +17,7 @@ export function App() {
           {activePage === 'today' ? <TodayPage /> : <WeeklyPage />}
         </div>
       </main>
+      <Toaster />
     </div>
   );
 }

@@ -44,6 +44,22 @@ describe('useCategoryStore', () => {
     );
   });
 
+  it('replaces all categories', () => {
+    const replacement = [
+      { id: 'new-cat', name: 'Replaced', color: '#ff0000' },
+    ];
+
+    useCategoryStore.getState().replaceCategories(replacement);
+
+    expect(useCategoryStore.getState().categories).toEqual(replacement);
+  });
+
+  it('replaces categories with empty array', () => {
+    useCategoryStore.getState().replaceCategories([]);
+
+    expect(useCategoryStore.getState().categories).toEqual([]);
+  });
+
   it('persists categories to localStorage', () => {
     useCategoryStore.getState().addCategory({ name: 'Chores', color: '#14b8a6' });
 

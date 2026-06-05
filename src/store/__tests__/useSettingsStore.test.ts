@@ -22,6 +22,14 @@ describe('useSettingsStore', () => {
     });
   });
 
+  it('replaces all settings', () => {
+    const replacement = { timeResolution: 15 as const, dayStart: 480, dayEnd: 1200, startOfWeek: 'sun' as const };
+
+    useSettingsStore.getState().replaceSettings(replacement);
+
+    expect(useSettingsStore.getState().settings).toEqual(replacement);
+  });
+
   it('persists settings to localStorage', () => {
     useSettingsStore.getState().updateSettings({ timeResolution: 15 });
 

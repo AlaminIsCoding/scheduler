@@ -1,8 +1,9 @@
 import { useStore } from 'zustand';
-import { Undo2, Redo2, Download } from 'lucide-react';
+import { Undo2, Redo2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import { useEventStore } from '../../store/useEventStore';
+import { ExportMenu } from './ExportMenu';
 import { SettingsPanel } from './SettingsPanel';
 
 export function Toolbar() {
@@ -23,9 +24,7 @@ export function Toolbar() {
       <Separator orientation="vertical" className="mx-1 h-6" />
 
       <SettingsPanel />
-      <Button variant="ghost" size="icon" disabled title="Export (coming soon)">
-        <Download className="h-4 w-4" />
-      </Button>
+      <ExportMenu />
     </div>
   );
 }
