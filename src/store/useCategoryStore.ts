@@ -44,7 +44,7 @@ export const useCategoryStore = create<CategoryStore>()(
       },
     }),
     {
-      name: 'routine-categories',
+      name: 'scheduler-categories',
       version: 1,
       partialize: (state) => ({ categories: state.categories }),
     },

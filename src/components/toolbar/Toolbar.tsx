@@ -5,7 +5,6 @@ import { Separator } from '../ui/separator';
 import { useEventStore } from '../../store/useEventStore';
 import { ExportMenu } from './ExportMenu';
 import { ExportMediaMenu } from './ExportMediaMenu';
-import { SettingsPanel } from './SettingsPanel';
 
 export function Toolbar() {
   const undo = useEventStore((s) => s.undo);
@@ -24,7 +23,6 @@ export function Toolbar() {
 
       <Separator orientation="vertical" className="mx-1 h-6" />
 
-      <SettingsPanel />
       <ExportMediaMenu />
       <ExportMenu />
     </div>

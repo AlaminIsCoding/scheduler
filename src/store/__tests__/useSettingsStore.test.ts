@@ -33,7 +33,7 @@ describe('useSettingsStore', () => {
   it('persists settings to localStorage', () => {
     useSettingsStore.getState().updateSettings({ timeResolution: 15 });
 
-    const stored = JSON.parse(localStorage.getItem('routine-settings')!);
+    const stored = JSON.parse(localStorage.getItem('scheduler-settings')!);
     expect(stored.state.settings.timeResolution).toBe(15);
     expect(stored.version).toBe(1);
   });
@@ -41,7 +41,7 @@ describe('useSettingsStore', () => {
   it('does not persist action functions', () => {
     useSettingsStore.getState().updateSettings({ timeResolution: 15 });
 
-    const stored = JSON.parse(localStorage.getItem('routine-settings')!);
+    const stored = JSON.parse(localStorage.getItem('scheduler-settings')!);
     expect(stored.state.updateSettings).toBeUndefined();
   });
 });
@@ -54,7 +54,7 @@ describe('useSettingsStore hydration', () => {
 
   it('hydrates from saved state in localStorage', () => {
     const saved = { timeResolution: 15, dayStart: 480, dayEnd: 1200, startOfWeek: 'sun' };
-    localStorage.setItem('routine-settings', JSON.stringify({ state: { settings: saved }, version: 1 }));
+    localStorage.setItem('scheduler-settings', JSON.stringify({ state: { settings: saved }, version: 1 }));
 
     (useSettingsStore as any).persist.rehydrate();
 
@@ -62,7 +62,7 @@ describe('useSettingsStore hydration', () => {
   });
 
   it('falls back to defaults when localStorage has malformed JSON', () => {
-    localStorage.setItem('routine-settings', 'not-json');
+    localStorage.setItem('scheduler-settings', 'not-json');
 
     (useSettingsStore as any).persist.rehydrate();
 

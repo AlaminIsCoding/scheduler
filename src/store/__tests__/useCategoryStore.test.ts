@@ -63,7 +63,7 @@ describe('useCategoryStore', () => {
   it('persists categories to localStorage', () => {
     useCategoryStore.getState().addCategory({ name: 'Chores', color: '#14b8a6' });
 
-    const stored = JSON.parse(localStorage.getItem('routine-categories')!);
+    const stored = JSON.parse(localStorage.getItem('scheduler-categories')!);
     expect(stored.state.categories).toHaveLength(DEFAULT_CATEGORIES.length + 1);
     expect(stored.state.categories[stored.state.categories.length - 1].name).toBe('Chores');
     expect(stored.version).toBe(1);
@@ -72,7 +72,7 @@ describe('useCategoryStore', () => {
   it('does not persist action functions', () => {
     useCategoryStore.getState().addCategory({ name: 'Chores', color: '#14b8a6' });
 
-    const stored = JSON.parse(localStorage.getItem('routine-categories')!);
+    const stored = JSON.parse(localStorage.getItem('scheduler-categories')!);
     expect(stored.state.addCategory).toBeUndefined();
   });
 });
@@ -88,7 +88,7 @@ describe('useCategoryStore hydration', () => {
       { id: 'a', name: 'Saved Cat 1', color: '#ff0000' },
       { id: 'b', name: 'Saved Cat 2', color: '#00ff00' },
     ];
-    localStorage.setItem('routine-categories', JSON.stringify({ state: { categories: saved }, version: 1 }));
+    localStorage.setItem('scheduler-categories', JSON.stringify({ state: { categories: saved }, version: 1 }));
 
     (useCategoryStore as any).persist.rehydrate();
 
@@ -96,7 +96,7 @@ describe('useCategoryStore hydration', () => {
   });
 
   it('falls back to defaults when localStorage has malformed JSON', () => {
-    localStorage.setItem('routine-categories', 'not-json');
+    localStorage.setItem('scheduler-categories', 'not-json');
 
     (useCategoryStore as any).persist.rehydrate();
 

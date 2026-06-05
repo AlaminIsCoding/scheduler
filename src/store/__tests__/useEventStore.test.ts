@@ -189,7 +189,7 @@ describe('useEventStore', () => {
   it('persists events to localStorage', () => {
     useEventStore.getState().addEvent(eventInput);
 
-    const stored = JSON.parse(localStorage.getItem('routine-events')!);
+    const stored = JSON.parse(localStorage.getItem('scheduler-events')!);
     expect(stored.state.events).toHaveLength(1);
     expect(stored.state.events[0].title).toBe('Focus block');
     expect(stored.version).toBe(1);
@@ -198,7 +198,7 @@ describe('useEventStore', () => {
   it('does not persist action functions', () => {
     useEventStore.getState().addEvent(eventInput);
 
-    const stored = JSON.parse(localStorage.getItem('routine-events')!);
+    const stored = JSON.parse(localStorage.getItem('scheduler-events')!);
     expect(stored.state.addEvent).toBeUndefined();
   });
 
@@ -282,7 +282,7 @@ describe('useEventStore hydration', () => {
 
   it('hydrates from saved state in localStorage', () => {
     const saved = [{ ...eventInput, id: 'saved-id' }];
-    localStorage.setItem('routine-events', JSON.stringify({ state: { events: saved }, version: 1 }));
+    localStorage.setItem('scheduler-events', JSON.stringify({ state: { events: saved }, version: 1 }));
 
     (useEventStore as any).persist.rehydrate();
 
@@ -290,7 +290,7 @@ describe('useEventStore hydration', () => {
   });
 
   it('falls back to empty events when localStorage has malformed JSON', () => {
-    localStorage.setItem('routine-events', 'not-json');
+    localStorage.setItem('scheduler-events', 'not-json');
 
     (useEventStore as any).persist.rehydrate();
 

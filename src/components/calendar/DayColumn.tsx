@@ -36,9 +36,10 @@ function DroppableSlot({ day, startMinutes, onClick }: DroppableSlotProps) {
 interface DayColumnProps {
   day: DayOfWeek;
   events: RoutineEvent[];
+  compact?: boolean;
 }
 
-export function DayColumn({ day, events }: DayColumnProps) {
+export function DayColumn({ day, events, compact }: DayColumnProps) {
   const settings = useSettingsStore((state) => state.settings);
   const slots = generateTimeSlots(settings.dayStart, settings.dayEnd, settings.timeResolution);
   const isToday = day === getCurrentDayOfWeek();
@@ -60,16 +61,24 @@ export function DayColumn({ day, events }: DayColumnProps) {
 
   return (
     <div className="min-w-40 flex-1 border-r border-border/70 bg-background last:border-r-0" aria-label={DAY_LABELS[day]}>
-      <div
-        className={cn(
-          "sticky top-0 z-10 flex h-12 items-center justify-center border-b border-border/80 bg-background/85 px-3 text-sm font-semibold text-muted-foreground backdrop-blur supports-[backdrop-filter]:bg-background/70",
-          isToday && "bg-primary/10 text-primary supports-[backdrop-filter]:bg-primary/10"
-        )}
-      >
-        <span className={cn("rounded-full px-2.5 py-1", isToday && "bg-primary text-primary-foreground shadow-sm")}>
-          {DAY_LABELS[day]}
-        </span>
-      </div>
+      {compact ? (
+        <div className="sticky top-0 z-10 flex h-12 items-center justify-center border-b border-border/80 bg-background/85 px-3 text-base backdrop-blur supports-[backdrop-filter]:bg-background/70">
+          <span className="font-bold text-foreground">
+            {DAY_LABELS[day]} Schedule
+          </span>
+        </div>
+      ) : (
+        <div
+          className={cn(
+            "sticky top-0 z-10 flex h-12 items-center justify-center border-b border-border/80 bg-background/85 px-3 text-sm font-semibold text-muted-foreground backdrop-blur supports-[backdrop-filter]:bg-background/70",
+            isToday && "bg-primary/10 text-primary supports-[backdrop-filter]:bg-primary/10"
+          )}
+        >
+          <span className={cn("rounded-full px-2.5 py-1", isToday && "bg-primary text-primary-foreground shadow-sm")}>
+            {DAY_LABELS[day]}
+          </span>
+        </div>
+      )}
       <div className="relative" data-column>
         {slots.map((slot) => (
           <DroppableSlot

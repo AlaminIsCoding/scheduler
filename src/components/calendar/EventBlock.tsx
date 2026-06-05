@@ -1,9 +1,12 @@
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { cn } from '@/lib/utils';
 import { useResizeEvent } from '../../hooks/useResizeEvent';
 import { getDurationMinutes, minutesToPosition, minutesToTimeString } from '../../lib/time';
+import { useEventStore } from '../../store/useEventStore';
 import type { RoutineEvent } from '../../types';
+
+export const dragDuplicateRef = { current: null as string | null };
 
 interface EventBlockProps {
   event: RoutineEvent;
@@ -28,6 +31,21 @@ export function EventBlock({ event, dayStart, dayEnd, onClick }: EventBlockProps
     id: `event:${event.id}`,
     data: { event },
   });
+
+  const enhancedListeners = useMemo(() => {
+    if (!listeners) return {};
+    const { onPointerDown, ...rest } = listeners as Record<string, Function>;
+    return {
+      ...rest,
+      onPointerDown: (e: React.PointerEvent) => {
+        if (e.shiftKey) {
+          const clone = useEventStore.getState().duplicateEvent(event.id);
+          dragDuplicateRef.current = clone.id;
+        }
+        onPointerDown?.(e);
+      },
+    };
+  }, [listeners, event.id]);
 
   if (isResizing) {
     wasResizing.current = true;
@@ -65,7 +83,7 @@ export function EventBlock({ event, dayStart, dayEnd, onClick }: EventBlockProps
         backgroundColor: event.color,
       }}
       onClick={handleClick}
-      {...listeners}
+      {...enhancedListeners}
       {...attributes}
     >
       <div className="truncate">{event.title}</div>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ActivePage = 'today' | 'weekly';
+export type ActivePage = 'today' | 'weekly' | 'settings' | 'usage';
 
 interface NavigationStore {
   activePage: ActivePage;

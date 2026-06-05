@@ -9,6 +9,7 @@ import type { DayOfWeek, RoutineEvent } from '../../types';
 import { Card } from '../ui/card';
 import { DayColumn } from './DayColumn';
 import { DragOverlayEvent } from './DragOverlayEvent';
+import { dragDuplicateRef } from './EventBlock';
 import { TimeColumn } from './TimeColumn';
 
 function getOrderedDays(startOfWeek: 'mon' | 'sun'): DayOfWeek[] {
@@ -52,13 +53,16 @@ export function CalendarGrid() {
       const draggedEvent = active.data.current?.event as RoutineEvent | undefined;
       if (!draggedEvent) return;
 
-      moveEvent(draggedEvent.id, parsed.day, parsed.startMinutes);
+      const eventId = dragDuplicateRef.current ?? draggedEvent.id;
+      moveEvent(eventId, parsed.day, parsed.startMinutes);
+      dragDuplicateRef.current = null;
     },
     [moveEvent],
   );
 
   const handleDragCancel = useCallback(() => {
     setActiveEvent(null);
+    dragDuplicateRef.current = null;
   }, []);
 
   return (

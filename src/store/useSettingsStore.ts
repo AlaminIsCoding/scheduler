@@ -27,7 +27,7 @@ export const useSettingsStore = create<SettingsStore>()(
       },
     }),
     {
-      name: 'routine-settings',
+      name: 'scheduler-settings',
       version: 1,
       partialize: (state) => ({ settings: state.settings }),
     },

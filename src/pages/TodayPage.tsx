@@ -3,6 +3,7 @@ import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { DayColumn } from '../components/calendar/DayColumn';
 import { DragOverlayEvent } from '../components/calendar/DragOverlayEvent';
+import { dragDuplicateRef } from '../components/calendar/EventBlock';
 import { TimeColumn } from '../components/calendar/TimeColumn';
 import { Toolbar } from '../components/toolbar/Toolbar';
 import { DAY_LABELS } from '../lib/constants';
@@ -21,6 +22,22 @@ export function TodayPage() {
     year: 'numeric',
   }).format(new Date());
   const [activeEvent, setActiveEvent] = useState<RoutineEvent | null>(null);
+
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const sorted = [...todayEvents].sort((a, b) => a.startMinutes - b.startMinutes);
+  const currentEvent = sorted.find(
+    (e) => e.startMinutes <= currentMinutes && e.endMinutes > currentMinutes,
+  );
+  const nextEvent = !currentEvent
+    ? sorted.find((e) => e.startMinutes > currentMinutes)
+    : null;
+  const suggestion = currentEvent
+    ? `Now: ${currentEvent.title}`
+    : nextEvent
+      ? `Up next: ${nextEvent.title}`
+      : 'No events scheduled today.';
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -47,24 +64,27 @@ export function TodayPage() {
       const draggedEvent = active.data.current?.event as RoutineEvent | undefined;
       if (!draggedEvent) return;
 
-      moveEvent(draggedEvent.id, parsed.day, parsed.startMinutes);
+      const eventId = dragDuplicateRef.current ?? draggedEvent.id;
+      moveEvent(eventId, parsed.day, parsed.startMinutes);
+      dragDuplicateRef.current = null;
     },
     [moveEvent],
   );
 
   const handleDragCancel = useCallback(() => {
     setActiveEvent(null);
+    dragDuplicateRef.current = null;
   }, []);
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-4 rounded-2xl border border-border bg-background/95 p-5 shadow-sm sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Today</p>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">{DAY_LABELS[today]}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Focus your routine for {formattedDate}.</p>
+      <header className="flex flex-col gap-4 rounded-2xl border border-border bg-background/95 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">{DAY_LABELS[today]}</h1>
+            <span className="text-sm text-muted-foreground">{formattedDate}</span>
           </div>
+          <p className="text-sm text-muted-foreground">{suggestion}</p>
         </div>
         <Toolbar />
       </header>
@@ -78,7 +98,7 @@ export function TodayPage() {
         <div className="overflow-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="flex min-w-[520px]">
             <TimeColumn />
-            <DayColumn day={today} events={todayEvents} />
+            <DayColumn day={today} events={todayEvents} compact />
           </div>
         </div>
         <DragOverlay dropAnimation={null}>

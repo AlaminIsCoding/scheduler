@@ -31,3 +31,5 @@ Thumbs.db
 .ai/
 .docs/
 .opencode/
+.agents/
+skills-lock.json
