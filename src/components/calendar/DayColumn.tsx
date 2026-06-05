@@ -70,7 +70,7 @@ export function DayColumn({ day, events }: DayColumnProps) {
           {DAY_LABELS[day]}
         </span>
       </div>
-      <div className="relative">
+      <div className="relative" data-column>
         {slots.map((slot) => (
           <DroppableSlot
             key={slot}

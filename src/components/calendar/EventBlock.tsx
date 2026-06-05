@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { cn } from '@/lib/utils';
+import { useResizeEvent } from '../../hooks/useResizeEvent';
 import { getDurationMinutes, minutesToPosition, minutesToTimeString } from '../../lib/time';
 import type { RoutineEvent } from '../../types';
 
@@ -12,25 +13,35 @@ interface EventBlockProps {
 }
 
 export function EventBlock({ event, dayStart, dayEnd, onClick }: EventBlockProps) {
+  const { onPointerDown: onResizePointerDown, isResizing, previewEndMinutes } = useResizeEvent(event);
+
+  const displayEnd = previewEndMinutes ?? event.endMinutes;
   const top = minutesToPosition(event.startMinutes, dayStart, dayEnd);
-  const height = minutesToPosition(event.endMinutes, dayStart, dayEnd) - top;
-  const timeRange = `${minutesToTimeString(event.startMinutes)}-${minutesToTimeString(event.endMinutes)}`;
-  const duration = getDurationMinutes(event.startMinutes, event.endMinutes);
+  const height = minutesToPosition(displayEnd, dayStart, dayEnd) - top;
+  const timeRange = `${minutesToTimeString(event.startMinutes)}-${minutesToTimeString(displayEnd)}`;
+  const duration = getDurationMinutes(event.startMinutes, displayEnd);
 
   const wasDragging = useRef(false);
+  const wasResizing = useRef(false);
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `event:${event.id}`,
     data: { event },
   });
 
-  // Track drag state so we can suppress click after a drag
+  if (isResizing) {
+    wasResizing.current = true;
+  }
+
   if (isDragging) {
     wasDragging.current = true;
   }
 
   const handleClick = () => {
-    // If we just finished dragging, suppress the click that fires on pointer-up
+    if (wasResizing.current) {
+      wasResizing.current = false;
+      return;
+    }
     if (wasDragging.current) {
       wasDragging.current = false;
       return;
@@ -46,7 +57,7 @@ export function EventBlock({ event, dayStart, dayEnd, onClick }: EventBlockProps
       className={cn(
         "absolute left-1 right-1 overflow-hidden rounded-md border border-white/50 px-2 py-1 text-left text-xs font-medium text-white shadow-sm transition-shadow",
         isDragging && "invisible",
-        !isDragging && "cursor-grab"
+        !isDragging && !isResizing && "cursor-grab"
       )}
       style={{
         top: `${top}%`,
@@ -61,6 +72,10 @@ export function EventBlock({ event, dayStart, dayEnd, onClick }: EventBlockProps
       <div className="truncate text-white/85">
         {timeRange} · {duration} min
       </div>
+      <div
+        onPointerDown={onResizePointerDown}
+        className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize touch-none rounded-b-md bg-white/20 hover:bg-white/40"
+      />
     </button>
   );
 }

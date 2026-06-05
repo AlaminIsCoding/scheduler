@@ -114,6 +114,40 @@ describe('useEventStore', () => {
     });
   });
 
+  it('clamps resize to minimum duration of one resolution slot', () => {
+    const event = useEventStore.getState().addEvent(eventInput);
+
+    const result = useEventStore.getState().resizeEvent(event.id, 540, 550);
+
+    expect(result).toBe(true);
+    expect(useEventStore.getState().events[0]).toMatchObject({
+      startMinutes: 540,
+      endMinutes: 570,
+    });
+  });
+
+  it('rejects resize that would overlap another event', () => {
+    const event1 = useEventStore.getState().addEvent(eventInput);
+    useEventStore.getState().addEvent({
+      ...eventInput,
+      startMinutes: 660,
+      endMinutes: 720,
+    });
+
+    const result = useEventStore.getState().resizeEvent(event1.id, 540, 690);
+
+    expect(result).toBe(false);
+    expect(useEventStore.getState().events[0]).toMatchObject({
+      startMinutes: 540,
+      endMinutes: 600,
+    });
+  });
+
+  it('returns false when resizing a non-existent event', () => {
+    const result = useEventStore.getState().resizeEvent('nonexistent', 540, 600);
+    expect(result).toBe(false);
+  });
+
   it('rejects invalid event times', () => {
     expect(() =>
       useEventStore.getState().addEvent({
