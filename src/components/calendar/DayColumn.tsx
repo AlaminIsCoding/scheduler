@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useDroppable } from '@dnd-kit/core';
 import { DAY_LABELS } from '../../lib/constants';
 import { EventPopover } from '../../components/events/EventPopover';
 import { generateTimeSlots, getCurrentDayOfWeek } from '../../lib/time';
@@ -6,6 +7,31 @@ import { useSettingsStore } from '../../store/useSettingsStore';
 import type { DayOfWeek, RoutineEvent } from '../../types';
 import { cn } from '@/lib/utils';
 import { EventBlock } from './EventBlock';
+
+interface DroppableSlotProps {
+  day: DayOfWeek;
+  startMinutes: number;
+  onClick: () => void;
+}
+
+function DroppableSlot({ day, startMinutes, onClick }: DroppableSlotProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `slot:${day}:${startMinutes}`,
+  });
+
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      aria-label={`Create event at ${DAY_LABELS[day]} ${startMinutes}`}
+      className={cn(
+        "block h-12 w-full border-b border-border/50 bg-background transition-colors hover:bg-muted/50",
+        isOver && "bg-primary/15"
+      )}
+      onClick={onClick}
+    />
+  );
+}
 
 interface DayColumnProps {
   day: DayOfWeek;
@@ -46,11 +72,10 @@ export function DayColumn({ day, events }: DayColumnProps) {
       </div>
       <div className="relative">
         {slots.map((slot) => (
-          <button
+          <DroppableSlot
             key={slot}
-            type="button"
-            aria-label={`Create event at ${DAY_LABELS[day]} ${slot}`}
-            className="block h-12 w-full border-b border-border/50 bg-background transition-colors hover:bg-muted/50"
+            day={day}
+            startMinutes={slot}
             onClick={() => openCreatePopover(slot)}
           />
         ))}

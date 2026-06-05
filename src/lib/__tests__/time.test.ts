@@ -6,8 +6,11 @@ import {
   generateTimeSlots,
   getDurationMinutes,
   hasOverlappingEvent,
+  isWithinDayBounds,
   minutesToPosition,
   minutesToTimeString,
+  parseSlotId,
+  snapToGrid,
 } from '../time';
 
 const createEvent = (event: Partial<RoutineEvent>): RoutineEvent => ({
@@ -90,5 +93,63 @@ describe('time utilities', () => {
     ];
 
     expect(hasOverlappingEvent(event, events)).toBe(true);
+  });
+});
+
+describe('snapToGrid', () => {
+  it('snaps to the nearest grid boundary', () => {
+    expect(snapToGrid(545, 30)).toBe(540);
+    expect(snapToGrid(555, 30)).toBe(540 + 30);
+    expect(snapToGrid(540, 30)).toBe(540);
+  });
+
+  it('snaps with 15-minute resolution', () => {
+    expect(snapToGrid(542, 15)).toBe(540);
+    expect(snapToGrid(548, 15)).toBe(555);
+    expect(snapToGrid(555, 15)).toBe(555);
+  });
+
+  it('snaps with 60-minute resolution', () => {
+    expect(snapToGrid(500, 60)).toBe(480);
+    expect(snapToGrid(540, 60)).toBe(540);
+  });
+});
+
+describe('isWithinDayBounds', () => {
+  it('returns true when start and end are within bounds', () => {
+    expect(isWithinDayBounds(540, 600, 360, 1380)).toBe(true);
+  });
+
+  it('returns false when start is before day start', () => {
+    expect(isWithinDayBounds(300, 400, 360, 1380)).toBe(false);
+  });
+
+  it('returns false when end exceeds day end', () => {
+    expect(isWithinDayBounds(1350, 1410, 360, 1380)).toBe(false);
+  });
+
+  it('returns true when exactly at boundaries', () => {
+    expect(isWithinDayBounds(360, 1380, 360, 1380)).toBe(true);
+  });
+});
+
+describe('parseSlotId', () => {
+  it('parses a valid slot ID', () => {
+    expect(parseSlotId('slot:mon:540')).toEqual({ day: 'mon', startMinutes: 540 });
+    expect(parseSlotId('slot:fri:0')).toEqual({ day: 'fri', startMinutes: 0 });
+  });
+
+  it('returns null for invalid format', () => {
+    expect(parseSlotId('invalid')).toBeNull();
+    expect(parseSlotId('slot:mon')).toBeNull();
+    expect(parseSlotId('event:mon:540')).toBeNull();
+  });
+
+  it('returns null for invalid day', () => {
+    expect(parseSlotId('slot:xyz:540')).toBeNull();
+  });
+
+  it('returns null for non-numeric minutes', () => {
+    expect(parseSlotId('slot:mon:abc')).toBeNull();
   });
 });

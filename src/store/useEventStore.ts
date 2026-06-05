@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import { create } from 'zustand';
+import { hasOverlappingEvent } from '../lib/time';
 import type { DayOfWeek, RoutineEvent } from '../types';
 
 type EventInput = Omit<RoutineEvent, 'id'>;
@@ -10,7 +11,7 @@ interface EventStore {
   addEvent: (event: EventInput) => RoutineEvent;
   updateEvent: (id: string, event: EventUpdate) => void;
   deleteEvent: (id: string) => void;
-  moveEvent: (id: string, day: DayOfWeek, startMinutes: number) => void;
+  moveEvent: (id: string, day: DayOfWeek, startMinutes: number) => boolean;
   resizeEvent: (id: string, startMinutes: number, endMinutes: number) => void;
 }
 
@@ -55,18 +56,36 @@ export const useEventStore = create<EventStore>((set, get) => ({
     const currentEvent = get().events.find((event) => event.id === id);
 
     if (!currentEvent) {
-      return;
+      return false;
     }
 
     const duration = currentEvent.endMinutes - currentEvent.startMinutes;
     const endMinutes = startMinutes + duration;
     assertValidEventTime(startMinutes, endMinutes);
 
+    // Check for out-of-range (negative minutes or beyond 24h)
+    if (startMinutes < 0 || endMinutes > 1440) {
+      return false;
+    }
+
+    const candidateEvent: RoutineEvent = {
+      ...currentEvent,
+      day,
+      startMinutes,
+      endMinutes,
+    };
+
+    if (hasOverlappingEvent(candidateEvent, get().events)) {
+      return false;
+    }
+
     set((state) => ({
       events: state.events.map((event) =>
-        event.id === id ? { ...event, day, startMinutes, endMinutes } : event,
+        event.id === id ? candidateEvent : event,
       ),
     }));
+
+    return true;
   },
   resizeEvent: (id, startMinutes, endMinutes) => {
     assertValidEventTime(startMinutes, endMinutes);

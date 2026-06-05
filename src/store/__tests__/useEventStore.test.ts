@@ -50,13 +50,57 @@ describe('useEventStore', () => {
   it('moves an event while preserving duration', () => {
     const event = useEventStore.getState().addEvent(eventInput);
 
-    useEventStore.getState().moveEvent(event.id, 'tue', 600);
+    const result = useEventStore.getState().moveEvent(event.id, 'tue', 600);
 
+    expect(result).toBe(true);
     expect(useEventStore.getState().events[0]).toMatchObject({
       day: 'tue',
       startMinutes: 600,
       endMinutes: 660,
     });
+  });
+
+  it('rejects move to overlapping position', () => {
+    const event1 = useEventStore.getState().addEvent(eventInput);
+    useEventStore.getState().addEvent({
+      ...eventInput,
+      startMinutes: 660,
+      endMinutes: 720,
+    });
+
+    // Try to move event1 to 660-720 on mon, which overlaps event2
+    const result = useEventStore.getState().moveEvent(event1.id, 'mon', 660);
+
+    expect(result).toBe(false);
+    // event1 should remain unchanged
+    expect(useEventStore.getState().events[0]).toMatchObject({
+      day: 'mon',
+      startMinutes: 540,
+      endMinutes: 600,
+    });
+  });
+
+  it('rejects move that goes beyond 24 hours', () => {
+    const event = useEventStore.getState().addEvent(eventInput);
+
+    const result = useEventStore.getState().moveEvent(event.id, 'mon', 1420);
+
+    expect(result).toBe(false);
+    expect(useEventStore.getState().events[0].startMinutes).toBe(540);
+  });
+
+  it('rejects move to negative start minutes', () => {
+    const event = useEventStore.getState().addEvent(eventInput);
+
+    const result = useEventStore.getState().moveEvent(event.id, 'mon', -30);
+
+    expect(result).toBe(false);
+    expect(useEventStore.getState().events[0].startMinutes).toBe(540);
+  });
+
+  it('returns false when moving a non-existent event', () => {
+    const result = useEventStore.getState().moveEvent('nonexistent', 'mon', 540);
+    expect(result).toBe(false);
   });
 
   it('resizes an event', () => {

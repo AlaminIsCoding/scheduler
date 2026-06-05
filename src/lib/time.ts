@@ -76,3 +76,48 @@ export function eventsOverlap(first: RoutineEvent, second: RoutineEvent): boolea
 export function hasOverlappingEvent(event: RoutineEvent, events: RoutineEvent[]): boolean {
   return events.some((item) => item.id !== event.id && eventsOverlap(event, item));
 }
+
+/**
+ * Snap a minute value down to the nearest grid resolution boundary.
+ */
+export function snapToGrid(minutes: number, resolution: number): number {
+  return Math.round(minutes / resolution) * resolution;
+}
+
+/**
+ * Check whether a proposed start/end range fits within the day boundaries.
+ */
+export function isWithinDayBounds(
+  startMinutes: number,
+  endMinutes: number,
+  dayStart: number,
+  dayEnd: number,
+): boolean {
+  return startMinutes >= dayStart && endMinutes <= dayEnd;
+}
+
+/**
+ * Parse a droppable slot ID like "slot:mon:540" into its day and startMinutes.
+ * Returns null if the format is invalid.
+ */
+export function parseSlotId(
+  slotId: string,
+): { day: DayOfWeek; startMinutes: number } | null {
+  const parts = slotId.split(':');
+  if (parts.length !== 3 || parts[0] !== 'slot') {
+    return null;
+  }
+
+  const day = parts[1] as DayOfWeek;
+  const validDays: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  if (!validDays.includes(day)) {
+    return null;
+  }
+
+  const minutes = Number(parts[2]);
+  if (Number.isNaN(minutes)) {
+    return null;
+  }
+
+  return { day, startMinutes: minutes };
+}
