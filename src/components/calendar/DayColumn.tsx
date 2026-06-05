@@ -1,24 +1,76 @@
+import { useState } from 'react';
 import { DAY_LABELS } from '../../lib/constants';
+import { EventPopover } from '../../components/events/EventPopover';
+import { generateTimeSlots, getCurrentDayOfWeek } from '../../lib/time';
 import { useSettingsStore } from '../../store/useSettingsStore';
-import type { DayOfWeek } from '../../types';
+import type { DayOfWeek, RoutineEvent } from '../../types';
+import { cn } from '@/lib/utils';
+import { EventBlock } from './EventBlock';
 
 interface DayColumnProps {
   day: DayOfWeek;
+  events: RoutineEvent[];
 }
 
-export function DayColumn({ day }: DayColumnProps) {
+export function DayColumn({ day, events }: DayColumnProps) {
   const settings = useSettingsStore((state) => state.settings);
-  const slotCount = Math.ceil((settings.dayEnd - settings.dayStart) / settings.timeResolution);
-  const slots = Array.from({ length: slotCount }, (_, index) => index);
+  const slots = generateTimeSlots(settings.dayStart, settings.dayEnd, settings.timeResolution);
+  const isToday = day === getCurrentDayOfWeek();
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [selectedStartMinutes, setSelectedStartMinutes] = useState(settings.dayStart);
+  const [selectedEvent, setSelectedEvent] = useState<RoutineEvent | null>(null);
+
+  const openCreatePopover = (startMinutes: number) => {
+    setSelectedEvent(null);
+    setSelectedStartMinutes(startMinutes);
+    setIsPopoverOpen(true);
+  };
+
+  const openEditPopover = (event: RoutineEvent) => {
+    setSelectedEvent(event);
+    setSelectedStartMinutes(event.startMinutes);
+    setIsPopoverOpen(true);
+  };
 
   return (
-    <div className="min-w-40 flex-1 border-r border-slate-200 bg-white" aria-label={DAY_LABELS[day]}>
-      <div className="sticky top-0 z-10 flex h-12 items-center justify-center border-b border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700">
-        {DAY_LABELS[day]}
+    <div className="min-w-40 flex-1 border-r border-border/70 bg-background last:border-r-0" aria-label={DAY_LABELS[day]}>
+      <div
+        className={cn(
+          "sticky top-0 z-10 flex h-12 items-center justify-center border-b border-border/80 bg-background/85 px-3 text-sm font-semibold text-muted-foreground backdrop-blur supports-[backdrop-filter]:bg-background/70",
+          isToday && "bg-primary/10 text-primary supports-[backdrop-filter]:bg-primary/10"
+        )}
+      >
+        <span className={cn("rounded-full px-2.5 py-1", isToday && "bg-primary text-primary-foreground shadow-sm")}>
+          {DAY_LABELS[day]}
+        </span>
       </div>
-      {slots.map((slot) => (
-        <div key={slot} className="h-12 border-b border-slate-100" />
-      ))}
+      <div className="relative">
+        {slots.map((slot) => (
+          <button
+            key={slot}
+            type="button"
+            aria-label={`Create event at ${DAY_LABELS[day]} ${slot}`}
+            className="block h-12 w-full border-b border-border/50 bg-background transition-colors hover:bg-muted/50"
+            onClick={() => openCreatePopover(slot)}
+          />
+        ))}
+        {events.map((event) => (
+          <EventBlock
+            key={event.id}
+            event={event}
+            dayStart={settings.dayStart}
+            dayEnd={settings.dayEnd}
+            onClick={openEditPopover}
+          />
+        ))}
+        <EventPopover
+          open={isPopoverOpen}
+          onOpenChange={setIsPopoverOpen}
+          day={day}
+          startMinutes={selectedStartMinutes}
+          event={selectedEvent}
+        />
+      </div>
     </div>
   );
 }

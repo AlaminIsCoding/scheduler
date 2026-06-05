@@ -1,6 +1,8 @@
 import { DAYS } from '../../lib/constants';
 import { useSettingsStore } from '../../store/useSettingsStore';
+import { useEventStore } from '../../store/useEventStore';
 import type { DayOfWeek } from '../../types';
+import { Card } from '../ui/card';
 import { DayColumn } from './DayColumn';
 import { TimeColumn } from './TimeColumn';
 
@@ -14,16 +16,19 @@ function getOrderedDays(startOfWeek: 'mon' | 'sun'): DayOfWeek[] {
 
 export function CalendarGrid() {
   const startOfWeek = useSettingsStore((state) => state.settings.startOfWeek);
+  const events = useEventStore((state) => state.events);
   const orderedDays = getOrderedDays(startOfWeek);
 
   return (
-    <div className="overflow-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex min-w-[960px]">
-        <TimeColumn />
-        {orderedDays.map((day) => (
-          <DayColumn key={day} day={day} />
-        ))}
+    <Card className="overflow-hidden rounded-2xl border-border bg-background shadow-sm">
+      <div className="overflow-auto">
+        <div className="flex min-w-[960px]">
+          <TimeColumn />
+          {orderedDays.map((day) => (
+            <DayColumn key={day} day={day} events={events.filter((event) => event.day === day)} />
+          ))}
+        </div>
       </div>
-    </div>
+    </Card>
   );
 }
