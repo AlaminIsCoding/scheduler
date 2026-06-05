@@ -7,10 +7,10 @@ export function App() {
   const activePage = useNavigationStore((state) => state.activePage);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-muted/40 text-foreground">
       <Sidebar />
-      <main className="min-h-screen pl-16 lg:pl-64">
-        <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+      <main className="min-h-screen pl-16 lg:pl-64 flex flex-col">
+        <div className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
           {activePage === 'today' ? <TodayPage /> : <WeeklyPage />}
         </div>
       </main>
