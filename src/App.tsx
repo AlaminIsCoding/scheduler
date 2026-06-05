@@ -14,9 +14,9 @@ export function App() {
   useKeyboardShortcuts();
 
   return (
-    <div className="min-h-screen bg-muted/40 text-foreground">
+    <div className="min-h-screen bg-muted/40 text-foreground overflow-x-hidden">
       <Sidebar />
-      <main className="min-h-screen pl-16 lg:pl-64 flex flex-col">
+      <main className="min-h-screen pt-16 flex flex-col lg:pl-64 lg:pt-0">
         {!dismissed && (
           <div className="lg:hidden flex items-center gap-2 bg-amber-50 border-b border-amber-200 px-4 py-2 text-sm text-amber-800">
             <span className="flex-1">Scheduler is optimized for desktop — some features may not work on mobile.</span>
@@ -30,7 +30,7 @@ export function App() {
             </button>
           </div>
         )}
-        <div className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
+        <div className="flex-1 p-4 md:p-6 lg:p-8 space-y-6 max-w-full">
           {activePage === 'today' && <TodayPage />}
           {activePage === 'weekly' && <WeeklyPage />}
           {activePage === 'settings' && <SettingsPage />}

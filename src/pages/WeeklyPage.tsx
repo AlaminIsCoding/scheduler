@@ -3,7 +3,7 @@ import { Toolbar } from '../components/toolbar/Toolbar';
 
 export function WeeklyPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-hidden">
       <header className="flex flex-col gap-4 rounded-2xl border border-border bg-background/95 p-5 shadow-sm sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-2">
           <div>

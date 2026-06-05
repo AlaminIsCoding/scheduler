@@ -10,6 +10,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { CategoryPicker } from './CategoryPicker';
 import { ColorPicker } from './ColorPicker';
 
@@ -19,6 +20,121 @@ interface EventPopoverProps {
   day: DayOfWeek;
   startMinutes: number;
   event?: RoutineEvent | null;
+}
+
+function FormBody({
+  title,
+  onTitleChange,
+  start,
+  onStartChange,
+  end,
+  onEndChange,
+  categoryId,
+  onCategoryChange,
+  color,
+  onColorChange,
+  error,
+  hasEvent,
+  onSubmit,
+  onCancel,
+  onDelete,
+  options,
+}: {
+  title: string;
+  onTitleChange: (value: string) => void;
+  start: number;
+  onStartChange: (value: number) => void;
+  end: number;
+  onEndChange: (value: number) => void;
+  categoryId: string;
+  onCategoryChange: (value: string) => void;
+  color: string;
+  onColorChange: (value: string) => void;
+  error: string;
+  hasEvent: boolean;
+  onSubmit: (e: FormEvent<HTMLFormElement>) => void;
+  onCancel: () => void;
+  onDelete: () => void;
+  options: { value: number; label: string }[];
+}) {
+  return (
+    <form className="flex flex-col gap-4" onSubmit={onSubmit}>
+      <div className="flex flex-col gap-1">
+        <h2 className="text-sm font-semibold">{hasEvent ? 'Edit event' : 'Create event'}</h2>
+        <p className="text-xs text-muted-foreground">Set the title, time, category, and color.</p>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="event-title">Title</Label>
+        <Input id="event-title" value={title} onChange={(e) => onTitleChange(e.target.value)} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="event-start">Start</Label>
+          <Select value={String(start)} onValueChange={(v) => onStartChange(Number(v))}>
+            <SelectTrigger id="event-start">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {options.map((option) => (
+                  <SelectItem key={option.value} value={String(option.value)}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="event-end">End</Label>
+          <Select value={String(end)} onValueChange={(v) => onEndChange(Number(v))}>
+            <SelectTrigger id="event-end" aria-invalid={end <= start}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {options.map((option) => (
+                  <SelectItem key={option.value} value={String(option.value)}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="event-category">Category</Label>
+        <CategoryPicker value={categoryId} onValueChange={onCategoryChange} />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label>Color</Label>
+        <ColorPicker value={color} onValueChange={onColorChange} />
+      </div>
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
+      <div className="flex justify-between gap-2">
+        {hasEvent ? (
+          <Button type="button" variant="destructive" onClick={onDelete}>
+            Delete
+          </Button>
+        ) : (
+          <span />
+        )}
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit">Save</Button>
+        </div>
+      </div>
+    </form>
+  );
 }
 
 export function EventPopover({ open, onOpenChange, day, startMinutes, event }: EventPopoverProps) {
@@ -36,6 +152,7 @@ export function EventPopover({ open, onOpenChange, day, startMinutes, event }: E
   const [error, setError] = useState('');
   const options = generateTimeSelectOptions(settings.dayStart, settings.dayEnd, settings.timeResolution);
   const anchorTop = minutesToPosition(start, settings.dayStart, settings.dayEnd);
+  const [isMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 640);
 
   useEffect(() => {
     const selectedCategory = categories.find((category) => category.id === event?.categoryId) ?? fallbackCategory;
@@ -90,6 +207,37 @@ export function EventPopover({ open, onOpenChange, day, startMinutes, event }: E
     }
   };
 
+  if (isMobile) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{event ? 'Edit event' : 'Create event'}</DialogTitle>
+            <DialogDescription>Set the title, time, category, and color.</DialogDescription>
+          </DialogHeader>
+          <FormBody
+            title={title}
+            onTitleChange={setTitle}
+            start={start}
+            onStartChange={setStart}
+            end={end}
+            onEndChange={setEnd}
+            categoryId={categoryId}
+            onCategoryChange={handleCategoryChange}
+            color={color}
+            onColorChange={setColor}
+            error={error}
+            hasEvent={!!event}
+            onSubmit={handleSubmit}
+            onCancel={() => onOpenChange(false)}
+            onDelete={handleDelete}
+            options={options}
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
@@ -101,83 +249,25 @@ export function EventPopover({ open, onOpenChange, day, startMinutes, event }: E
           tabIndex={-1}
         />
       </PopoverTrigger>
-      <PopoverContent className="w-80" align="start">
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-semibold">{event ? 'Edit event' : 'Create event'}</h2>
-            <p className="text-xs text-muted-foreground">Set the title, time, category, and color.</p>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="event-title">Title</Label>
-            <Input id="event-title" value={title} onChange={(inputEvent) => setTitle(inputEvent.target.value)} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="event-start">Start</Label>
-              <Select value={String(start)} onValueChange={(value) => setStart(Number(value))}>
-                <SelectTrigger id="event-start">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {options.map((option) => (
-                      <SelectItem key={option.value} value={String(option.value)}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="event-end">End</Label>
-              <Select value={String(end)} onValueChange={(value) => setEnd(Number(value))}>
-                <SelectTrigger id="event-end" aria-invalid={end <= start}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {options.map((option) => (
-                      <SelectItem key={option.value} value={String(option.value)}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="event-category">Category</Label>
-            <CategoryPicker value={categoryId} onValueChange={handleCategoryChange} />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label>Color</Label>
-            <ColorPicker value={color} onValueChange={setColor} />
-          </div>
-
-          {error && <p className="text-sm text-destructive">{error}</p>}
-
-          <div className="flex justify-between gap-2">
-            {event ? (
-              <Button type="button" variant="destructive" onClick={handleDelete}>
-                Delete
-              </Button>
-            ) : (
-              <span />
-            )}
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Save</Button>
-            </div>
-          </div>
-        </form>
+      <PopoverContent className="w-72 sm:w-80" align="start">
+        <FormBody
+          title={title}
+          onTitleChange={setTitle}
+          start={start}
+          onStartChange={setStart}
+          end={end}
+          onEndChange={setEnd}
+          categoryId={categoryId}
+          onCategoryChange={handleCategoryChange}
+          color={color}
+          onColorChange={setColor}
+          error={error}
+          hasEvent={!!event}
+          onSubmit={handleSubmit}
+          onCancel={() => onOpenChange(false)}
+          onDelete={handleDelete}
+          options={options}
+        />
       </PopoverContent>
     </Popover>
   );

@@ -96,7 +96,7 @@ export function TodayPage() {
         onDragCancel={handleDragCancel}
       >
         <div className="overflow-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex min-w-[520px]">
+          <div className="flex">              
             <TimeColumn />
             <DayColumn day={today} events={todayEvents} compact />
           </div>

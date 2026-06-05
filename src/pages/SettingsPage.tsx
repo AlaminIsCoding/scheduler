@@ -254,7 +254,7 @@ export function SettingsPage() {
       </Card>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
             <DialogDescription>
@@ -301,7 +301,7 @@ export function SettingsPage() {
       </Dialog>
 
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Add Category</DialogTitle>
             <DialogDescription>

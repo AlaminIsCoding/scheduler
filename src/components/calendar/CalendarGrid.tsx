@@ -72,7 +72,7 @@ export function CalendarGrid() {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <Card className="overflow-hidden rounded-2xl border-border bg-background shadow-sm">
+      <Card className="max-w-full overflow-hidden rounded-2xl border-border bg-background shadow-sm">
         <div className="overflow-auto">
           <div className="flex min-w-[960px]">
             <TimeColumn />
