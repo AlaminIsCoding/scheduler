@@ -13,7 +13,7 @@ export function Sidebar() {
       <aside className="fixed z-20 flex border-border bg-background shadow-sm
         inset-x-0 top-0 h-16 flex-row items-center gap-2 border-b px-3
         lg:inset-y-0 lg:left-0 lg:h-full lg:w-64 lg:flex-col lg:items-stretch lg:border-r lg:border-b-0 lg:px-0">
-        <div className="flex h-9 shrink-0 items-center gap-3 px-2 lg:h-16 lg:w-full lg:border-b lg:border-border lg:px-4">
+        <div className="flex h-9 shrink-0 items-center justify-center gap-3 px-2 lg:h-16 lg:w-full lg:justify-start lg:border-b lg:border-border lg:px-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shrink-0">
             SC
           </div>
@@ -22,7 +22,7 @@ export function Sidebar() {
           </span>
         </div>
 
-        <nav className="flex flex-1 items-center justify-center gap-1 lg:flex-col lg:items-stretch lg:p-3" aria-label="Primary navigation">
+        <nav className="flex flex-1 items-center justify-center gap-1.5 lg:flex-col lg:items-stretch lg:justify-start lg:p-3" aria-label="Primary navigation">
           <NavItem
             icon={CalendarDays}
             label="Today"
@@ -58,14 +58,14 @@ export function Sidebar() {
             href="https://github.com/AlaminIsCoding/scheduler"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-full items-center justify-center gap-3 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:justify-start"
+            className="flex w-full items-center justify-center gap-3 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             <Github className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="hidden lg:inline">Source Code</span>
           </a>
           <a
             href="mailto:contact@alamin.work"
-            className="flex w-full items-center justify-center gap-3 rounded-md border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:justify-start"
+            className="flex w-full items-center justify-center gap-3 rounded-md border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="hidden lg:inline">Contact Me</span>
