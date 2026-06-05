@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { DEFAULT_CATEGORIES } from '../lib/constants';
 import type { Category } from '../types';
 
@@ -13,26 +14,35 @@ interface CategoryStore {
   deleteCategory: (id: string) => void;
 }
 
-export const useCategoryStore = create<CategoryStore>((set) => ({
-  categories: DEFAULT_CATEGORIES,
-  addCategory: (category) => {
-    const newCategory: Category = {
-      ...category,
-      id: nanoid(),
-    };
+export const useCategoryStore = create<CategoryStore>()(
+  persist(
+    (set) => ({
+      categories: DEFAULT_CATEGORIES,
+      addCategory: (category) => {
+        const newCategory: Category = {
+          ...category,
+          id: nanoid(),
+        };
 
-    set((state) => ({ categories: [...state.categories, newCategory] }));
+        set((state) => ({ categories: [...state.categories, newCategory] }));
 
-    return newCategory;
-  },
-  updateCategory: (id, category) => {
-    set((state) => ({
-      categories: state.categories.map((item) =>
-        item.id === id ? { ...item, ...category } : item,
-      ),
-    }));
-  },
-  deleteCategory: (id) => {
-    set((state) => ({ categories: state.categories.filter((category) => category.id !== id) }));
-  },
-}));
+        return newCategory;
+      },
+      updateCategory: (id, category) => {
+        set((state) => ({
+          categories: state.categories.map((item) =>
+            item.id === id ? { ...item, ...category } : item,
+          ),
+        }));
+      },
+      deleteCategory: (id) => {
+        set((state) => ({ categories: state.categories.filter((category) => category.id !== id) }));
+      },
+    }),
+    {
+      name: 'routine-categories',
+      version: 1,
+      partialize: (state) => ({ categories: state.categories }),
+    },
+  ),
+);

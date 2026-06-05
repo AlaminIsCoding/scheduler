@@ -12,6 +12,7 @@ const eventInput = {
 
 describe('useEventStore', () => {
   beforeEach(() => {
+    localStorage.clear();
     useEventStore.setState({ events: [] });
     useEventStore.temporal.getState().clear();
   });
@@ -168,6 +169,22 @@ describe('useEventStore', () => {
     );
   });
 
+  it('persists events to localStorage', () => {
+    useEventStore.getState().addEvent(eventInput);
+
+    const stored = JSON.parse(localStorage.getItem('routine-events')!);
+    expect(stored.state.events).toHaveLength(1);
+    expect(stored.state.events[0].title).toBe('Focus block');
+    expect(stored.version).toBe(1);
+  });
+
+  it('does not persist action functions', () => {
+    useEventStore.getState().addEvent(eventInput);
+
+    const stored = JSON.parse(localStorage.getItem('routine-events')!);
+    expect(stored.state.addEvent).toBeUndefined();
+  });
+
   describe('undo/redo', () => {
     it('canUndo is false when no events have been changed', () => {
       expect(useEventStore.temporal.getState().pastStates).toHaveLength(0);
@@ -237,5 +254,29 @@ describe('useEventStore', () => {
       useEventStore.getState().addEvent(eventInput);
       expect(useEventStore.temporal.getState().futureStates).toHaveLength(0);
     });
+  });
+});
+
+describe('useEventStore hydration', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useEventStore.setState({ events: [] });
+  });
+
+  it('hydrates from saved state in localStorage', () => {
+    const saved = [{ ...eventInput, id: 'saved-id' }];
+    localStorage.setItem('routine-events', JSON.stringify({ state: { events: saved }, version: 1 }));
+
+    (useEventStore as any).persist.rehydrate();
+
+    expect(useEventStore.getState().events).toEqual(saved);
+  });
+
+  it('falls back to empty events when localStorage has malformed JSON', () => {
+    localStorage.setItem('routine-events', 'not-json');
+
+    (useEventStore as any).persist.rehydrate();
+
+    expect(useEventStore.getState().events).toEqual([]);
   });
 });
