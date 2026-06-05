@@ -1,4 +1,5 @@
 import { CalendarGrid } from '../components/calendar/CalendarGrid';
+import { Toolbar } from '../components/toolbar/Toolbar';
 
 export function WeeklyPage() {
   return (
@@ -11,9 +12,7 @@ export function WeeklyPage() {
             <p className="mt-1 text-sm text-muted-foreground">Plan your full week at a glance.</p>
           </div>
         </div>
-        <div className="rounded-full border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground">
-          Toolbar coming soon
-        </div>
+        <Toolbar />
       </header>
 
       <CalendarGrid />

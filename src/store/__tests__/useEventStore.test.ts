@@ -13,6 +13,7 @@ const eventInput = {
 describe('useEventStore', () => {
   beforeEach(() => {
     useEventStore.setState({ events: [] });
+    useEventStore.temporal.getState().clear();
   });
 
   it('starts with no events', () => {
@@ -165,5 +166,76 @@ describe('useEventStore', () => {
     expect(() => useEventStore.getState().resizeEvent(event.id, 700, 650)).toThrow(
       'Event end time must be after start time.',
     );
+  });
+
+  describe('undo/redo', () => {
+    it('canUndo is false when no events have been changed', () => {
+      expect(useEventStore.temporal.getState().pastStates).toHaveLength(0);
+    });
+
+    it('canUndo is true after adding an event', () => {
+      useEventStore.getState().addEvent(eventInput);
+      expect(useEventStore.temporal.getState().pastStates.length).toBeGreaterThan(0);
+    });
+
+    it('undo reverts the last event change', () => {
+      useEventStore.getState().addEvent(eventInput);
+      expect(useEventStore.getState().events).toHaveLength(1);
+
+      useEventStore.getState().undo();
+      expect(useEventStore.getState().events).toHaveLength(0);
+    });
+
+    it('canRedo is false when no undo has been performed', () => {
+      useEventStore.getState().addEvent(eventInput);
+      expect(useEventStore.temporal.getState().futureStates).toHaveLength(0);
+    });
+
+    it('canRedo is true after undo', () => {
+      useEventStore.getState().addEvent(eventInput);
+      useEventStore.getState().undo();
+      expect(useEventStore.temporal.getState().futureStates.length).toBeGreaterThan(0);
+    });
+
+    it('redo restores state after undo', () => {
+      useEventStore.getState().addEvent(eventInput);
+      useEventStore.getState().undo();
+      expect(useEventStore.getState().events).toHaveLength(0);
+
+      useEventStore.getState().redo();
+      expect(useEventStore.getState().events).toHaveLength(1);
+      expect(useEventStore.getState().events[0]).toMatchObject(eventInput);
+    });
+
+    it('supports multiple undo/redo cycles', () => {
+      const e1 = useEventStore.getState().addEvent(eventInput);
+      const e2 = useEventStore.getState().addEvent({
+        ...eventInput,
+        title: 'Second block',
+        startMinutes: 600,
+        endMinutes: 660,
+      });
+      expect(useEventStore.getState().events).toHaveLength(2);
+
+      useEventStore.getState().undo();
+      expect(useEventStore.getState().events).toHaveLength(1);
+      expect(useEventStore.getState().events[0].title).toBe('Focus block');
+
+      useEventStore.getState().undo();
+      expect(useEventStore.getState().events).toHaveLength(0);
+
+      useEventStore.getState().redo();
+      expect(useEventStore.getState().events).toHaveLength(1);
+      expect(useEventStore.getState().events[0].title).toBe('Focus block');
+    });
+
+    it('new mutation clears future states', () => {
+      useEventStore.getState().addEvent(eventInput);
+      useEventStore.getState().undo();
+      expect(useEventStore.temporal.getState().futureStates.length).toBeGreaterThan(0);
+
+      useEventStore.getState().addEvent(eventInput);
+      expect(useEventStore.temporal.getState().futureStates).toHaveLength(0);
+    });
   });
 });

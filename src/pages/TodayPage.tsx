@@ -4,6 +4,7 @@ import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { DayColumn } from '../components/calendar/DayColumn';
 import { DragOverlayEvent } from '../components/calendar/DragOverlayEvent';
 import { TimeColumn } from '../components/calendar/TimeColumn';
+import { Toolbar } from '../components/toolbar/Toolbar';
 import { DAY_LABELS } from '../lib/constants';
 import { getCurrentDayOfWeek, parseSlotId } from '../lib/time';
 import { useEventStore } from '../store/useEventStore';
@@ -65,9 +66,7 @@ export function TodayPage() {
             <p className="mt-1 text-sm text-muted-foreground">Focus your routine for {formattedDate}.</p>
           </div>
         </div>
-        <div className="rounded-full border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground">
-          Toolbar coming soon
-        </div>
+        <Toolbar />
       </header>
 
       <DndContext

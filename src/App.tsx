@@ -2,9 +2,11 @@ import { Sidebar } from './components/sidebar/Sidebar';
 import { TodayPage } from './pages/TodayPage';
 import { WeeklyPage } from './pages/WeeklyPage';
 import { useNavigationStore } from './store/useNavigationStore';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 export function App() {
   const activePage = useNavigationStore((state) => state.activePage);
+  useKeyboardShortcuts();
 
   return (
     <div className="min-h-screen bg-muted/40 text-foreground">

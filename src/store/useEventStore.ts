@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import { create } from 'zustand';
+import { temporal } from 'zundo';
 import { hasOverlappingEvent } from '../lib/time';
 import { useSettingsStore } from './useSettingsStore';
 import type { DayOfWeek, RoutineEvent } from '../types';
@@ -14,6 +15,8 @@ interface EventStore {
   deleteEvent: (id: string) => void;
   moveEvent: (id: string, day: DayOfWeek, startMinutes: number) => boolean;
   resizeEvent: (id: string, startMinutes: number, endMinutes: number) => boolean;
+  undo: () => void;
+  redo: () => void;
 }
 
 const assertValidEventTime = (startMinutes: number, endMinutes: number) => {
@@ -22,99 +25,112 @@ const assertValidEventTime = (startMinutes: number, endMinutes: number) => {
   }
 };
 
-export const useEventStore = create<EventStore>((set, get) => ({
-  events: [],
-  addEvent: (event) => {
-    assertValidEventTime(event.startMinutes, event.endMinutes);
+export const useEventStore = create<EventStore>()(
+  temporal(
+    (set, get) => ({
+      events: [],
+      addEvent: (event) => {
+        assertValidEventTime(event.startMinutes, event.endMinutes);
 
-    const newEvent: RoutineEvent = {
-      ...event,
-      id: nanoid(),
-    };
+        const newEvent: RoutineEvent = {
+          ...event,
+          id: nanoid(),
+        };
 
-    set((state) => ({ events: [...state.events, newEvent] }));
+        set((state) => ({ events: [...state.events, newEvent] }));
 
-    return newEvent;
-  },
-  updateEvent: (id, event) => {
-    const currentEvent = get().events.find((item) => item.id === id);
+        return newEvent;
+      },
+      updateEvent: (id, event) => {
+        const currentEvent = get().events.find((item) => item.id === id);
 
-    if (!currentEvent) {
-      return;
-    }
+        if (!currentEvent) {
+          return;
+        }
 
-    const nextEvent = { ...currentEvent, ...event };
-    assertValidEventTime(nextEvent.startMinutes, nextEvent.endMinutes);
+        const nextEvent = { ...currentEvent, ...event };
+        assertValidEventTime(nextEvent.startMinutes, nextEvent.endMinutes);
 
-    set((state) => ({
-      events: state.events.map((item) => (item.id === id ? nextEvent : item)),
-    }));
-  },
-  deleteEvent: (id) => {
-    set((state) => ({ events: state.events.filter((event) => event.id !== id) }));
-  },
-  moveEvent: (id, day, startMinutes) => {
-    const currentEvent = get().events.find((event) => event.id === id);
+        set((state) => ({
+          events: state.events.map((item) => (item.id === id ? nextEvent : item)),
+        }));
+      },
+      deleteEvent: (id) => {
+        set((state) => ({ events: state.events.filter((event) => event.id !== id) }));
+      },
+      moveEvent: (id, day, startMinutes) => {
+        const currentEvent = get().events.find((event) => event.id === id);
 
-    if (!currentEvent) {
-      return false;
-    }
+        if (!currentEvent) {
+          return false;
+        }
 
-    const duration = currentEvent.endMinutes - currentEvent.startMinutes;
-    const endMinutes = startMinutes + duration;
-    assertValidEventTime(startMinutes, endMinutes);
+        const duration = currentEvent.endMinutes - currentEvent.startMinutes;
+        const endMinutes = startMinutes + duration;
+        assertValidEventTime(startMinutes, endMinutes);
 
-    // Check for out-of-range (negative minutes or beyond 24h)
-    if (startMinutes < 0 || endMinutes > 1440) {
-      return false;
-    }
+        if (startMinutes < 0 || endMinutes > 1440) {
+          return false;
+        }
 
-    const candidateEvent: RoutineEvent = {
-      ...currentEvent,
-      day,
-      startMinutes,
-      endMinutes,
-    };
+        const candidateEvent: RoutineEvent = {
+          ...currentEvent,
+          day,
+          startMinutes,
+          endMinutes,
+        };
 
-    if (hasOverlappingEvent(candidateEvent, get().events)) {
-      return false;
-    }
+        if (hasOverlappingEvent(candidateEvent, get().events)) {
+          return false;
+        }
 
-    set((state) => ({
-      events: state.events.map((event) =>
-        event.id === id ? candidateEvent : event,
-      ),
-    }));
+        set((state) => ({
+          events: state.events.map((event) =>
+            event.id === id ? candidateEvent : event,
+          ),
+        }));
 
-    return true;
-  },
-  resizeEvent: (id, startMinutes, endMinutes) => {
-    assertValidEventTime(startMinutes, endMinutes);
+        return true;
+      },
+      resizeEvent: (id, startMinutes, endMinutes) => {
+        assertValidEventTime(startMinutes, endMinutes);
 
-    const currentEvent = get().events.find((e) => e.id === id);
-    if (!currentEvent) return false;
+        const currentEvent = get().events.find((e) => e.id === id);
+        if (!currentEvent) return false;
 
-    const resolution = useSettingsStore.getState().settings.timeResolution;
+        const resolution = useSettingsStore.getState().settings.timeResolution;
 
-    const minEnd = startMinutes + resolution;
-    const clampedEnd = Math.max(endMinutes, minEnd);
+        const minEnd = startMinutes + resolution;
+        const clampedEnd = Math.max(endMinutes, minEnd);
 
-    const candidateEvent: RoutineEvent = {
-      ...currentEvent,
-      startMinutes,
-      endMinutes: clampedEnd,
-    };
+        const candidateEvent: RoutineEvent = {
+          ...currentEvent,
+          startMinutes,
+          endMinutes: clampedEnd,
+        };
 
-    if (hasOverlappingEvent(candidateEvent, get().events)) {
-      return false;
-    }
+        if (hasOverlappingEvent(candidateEvent, get().events)) {
+          return false;
+        }
 
-    set((state) => ({
-      events: state.events.map((event) =>
-        event.id === id ? candidateEvent : event,
-      ),
-    }));
+        set((state) => ({
+          events: state.events.map((event) =>
+            event.id === id ? candidateEvent : event,
+          ),
+        }));
 
-    return true;
-  },
-}));
+        return true;
+      },
+      undo: () => {
+        useEventStore.temporal.getState().undo();
+      },
+      redo: () => {
+        useEventStore.temporal.getState().redo();
+      },
+    }),
+    {
+      limit: 50,
+      partialize: (state) => ({ events: state.events }),
+    },
+  ),
+);

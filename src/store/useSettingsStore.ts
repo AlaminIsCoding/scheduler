@@ -10,11 +10,12 @@ interface SettingsStore {
 export const useSettingsStore = create<SettingsStore>((set) => ({
   settings: DEFAULT_SETTINGS,
   updateSettings: (settings) => {
-    set((state) => ({
-      settings: {
-        ...state.settings,
-        ...settings,
-      },
-    }));
+    set((state) => {
+      const next = { ...state.settings, ...settings };
+      if (next.dayStart >= next.dayEnd) {
+        throw new Error('Day start must be before day end.');
+      }
+      return { settings: next };
+    });
   },
 }));
